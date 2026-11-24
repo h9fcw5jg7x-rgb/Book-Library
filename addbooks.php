@@ -8,19 +8,23 @@ include 'config.php';
 
 $message = "";
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
-    $title = $_POST['title'];
-    $author = $_POST['author'];
-    $isbn = $_POST['isbn'];
-    $year = $_POST['year'];
-    $genre = $_POST['genre'];
-
-    $stmt = $conn->prepare("INSERT INTO books (title, author, isbn, year, genre) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssis", $title, $author, $isbn, $year, $genre);
-
-    if($stmt->execute()){
-        $message = "Book added successfully!";
+    if($_POST['captcha'] != $_SESSION['answer']){
+        $message = "Captcha answer wrong, try again.";
     } else {
-        $message = "Error adding book.";
+        $title = $_POST['title'];
+        $author = $_POST['author'];
+        $isbn = $_POST['isbn'];
+        $year = $_POST['year'];
+        $genre = $_POST['genre'];
+
+        $stmt = $conn->prepare("INSERT INTO books (title, author, isbn, year, genre) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssis", $title, $author, $isbn, $year, $genre);
+
+        if($stmt->execute()){
+            $message = "Book added successfully!";
+        } else {
+            $message = "Error adding book.";
+        }
     }
 }
 ?>
@@ -51,6 +55,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
         <label>Genre:</label>
         <input type="text" name="genre" required>
+
+        <label>Captcha: <?php include "captcha.php"; ?></label>
+        <input type="number" name="captcha" required>
 
         <button type="submit">Add Book</button>
     </form>
