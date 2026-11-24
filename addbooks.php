@@ -1,53 +1,60 @@
 <?php
+session_start();
+if(!isset($_SESSION['loggedin'])){
+    header("Location: login.php");
+    exit;
+}
 include 'config.php';
 
 $message = "";
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $title = $_POST['title'];
     $author = $_POST['author'];
     $isbn = $_POST['isbn'];
-    $genre = $_POST['genre'];
     $year = $_POST['year'];
+    $genre = $_POST['genre'];
 
-    $sql = "INSERT INTO books (title, author, isbn, genre, year) VALUES ('$title','$author','$isbn','$genre','$year')";
+    $stmt = $conn->prepare("INSERT INTO books (title, author, isbn, year, genre) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssis", $title, $author, $isbn, $year, $genre);
 
-    if ($conn->query($sql) === TRUE) {
-        $message = "✅ Book added successfully!";
+    if($stmt->execute()){
+        $message = "Book added successfully!";
     } else {
-        $message = "❌ Error: " . $conn->error;
+        $message = "Error adding book.";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>Add New Book</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Add a New Book</h1>
-    <?php if(!empty($message)) { echo "<p>$message</p>"; } ?>
+    <h1>Add New Book</h1>
+    <?php if(!empty($message)){ ?>
+        <p><?php echo htmlspecialchars($message); ?></p>
+    <?php } ?>
 
-    <form method="POST" action="addbook.php">
-        <label>Book Title:</label>
-        <input type="text" name="title" required><br><br>
+    <form method="POST">
+        <label>Title:</label>
+        <input type="text" name="title" required>
 
         <label>Author:</label>
-        <input type="text" name="author" required><br><br>
+        <input type="text" name="author" required>
 
         <label>ISBN:</label>
-        <input type="text" name="isbn" required><br><br>
-
-        <label>Genre:</label>
-        <input type="text" name="genre" required><br><br>
+        <input type="text" name="isbn" required>
 
         <label>Year:</label>
-        <input type="number" name="year" required><br><br>
+        <input type="number" name="year" required>
 
-        <input type="submit" value="Add Book">
+        <label>Genre:</label>
+        <input type="text" name="genre" required>
+
+        <button type="submit">Add Book</button>
     </form>
     <br>
-    <a href="index.php">Back to Book List</a>
+    <a href="index.php">Back to Book Library</a>
 </body>
 </html>
